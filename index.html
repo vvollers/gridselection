@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grid Selection</title>
+<style>
+  body, html {
+    height: 100%;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+  }
+  .grid {
+    display: grid;
+    gap: 2px;
+  }
+  .cell {
+    width: 20px;
+    height: 20px;
+    background-color: #f0f0f0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+  }
+  .cell_column_header {
+    width: 20px;
+    height: 20px;
+    font-weight: bold;
+    background-color: #8a92ff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+  }
+  .cell_row_header {
+    width: 20px;
+    height: 20px;
+    font-weight: bold;
+    background-color: #fdd244;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+  }
+  .cell.selected {
+    background-color: lightblue;
+  }
+  .inl {
+    display: inline-block;
+    margin-right: 5px;
+  }
+  .vertalign {
+    display: flex;
+    align-items: center;
+
+  }
+  #griddata {
+    width: 800px;
+  }
+</style>
+</head>
+<body>
+<h1>Grid Selection</h1>
+<div id="explanation">
+    <div class="vertalign"><div class="cell selected inl"></div><span>selected led</span></div>
+    <div class="vertalign"><div class="cell_column_header inl"></div>controller</div>
+    <div class="vertalign"><div class="cell_row_header inl"></div>led</div>
+</div>
+<div id="griddata"></div>
+<div id="grid"></div>
+
+<script>
+  const gridWidth = 9; // X width
+  const gridHeight = 32; // Y height
+  let controller_selected = [];
+
+  const gridContainer = document.getElementById('grid');
+  gridContainer.style.gridTemplateColumns = `repeat(${gridWidth+1}, 1fr)`;
+  gridContainer.className = 'grid';
+
+  for (let col = -1; col < gridWidth; col++) {
+    const cell = document.createElement('div');
+    if(col == -1) {
+        cell.className = 'cellnothing';
+    } else {
+        cell.className = 'cell_column_header';
+        cell.innerHTML = col;
+    }
+    
+    cell.dataset.row = -1;
+    cell.dataset.col = col;
+    
+    gridContainer.appendChild(cell);
+}
+  for (let row = 0; row < gridHeight; row++) {
+    const rowcell = document.createElement('div');
+    rowcell.className = 'cell_row_header';
+    
+    rowcell.dataset.row = -1;
+    rowcell.dataset.col = row;
+    rowcell.innerHTML = row;
+    gridContainer.appendChild(rowcell);
+
+    for (let col = 0; col < gridWidth; col++) {
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      cell.dataset.row = row;
+      cell.dataset.col = col;
+      cell.addEventListener('click', function() {
+        selectCell(row, col);
+      });
+      gridContainer.appendChild(cell);
+      if(col == 0) {
+        setCellSelected(row, col, true);
+      }
+    }
+  }
+
+  updateSelectedCells();
+
+  function cellIsSelected(row, col) {
+    const selectedCell = document.querySelector(`.cell[data-row='${row}'][data-col='${col}']`);
+    return selectedCell.classList.contains('selected');
+  }
+
+  function updateSelectedCellsText() {
+    const gridData = document.getElementById('griddata');
+    gridData.innerHTML = '';
+    for(let col=0;col<gridWidth;col++) {
+        gridData.innerHTML += `controller ${col}: ${controller_selected[col].join(', ')}<br>`;
+    }
+  }
+
+  function updateSelectedCells() {
+    controller_selected = [];
+
+    for(let col=0;col<gridWidth;col++) {
+        controller_selected[col] = [];
+        for(let row=0;row<gridHeight;row++) {
+            if(cellIsSelected(row, col)) {
+                controller_selected[col].push(row);
+            }
+        }
+    }
+    updateSelectedCellsText();
+  }
+
+  function setCellSelected(row, col, selected) {
+    const cell = document.querySelector(`.cell[data-row='${row}'][data-col='${col}']`);
+    if (selected) {
+      cell.classList.add('selected');
+    } else {
+      cell.classList.remove('selected');
+    }
+  }
+
+  function selectCell(row, col) {
+    const allCellsInRow = document.querySelectorAll(`.cell[data-row='${row}']`);
+    allCellsInRow.forEach(cell => cell.classList.remove('selected'));
+    setCellSelected(row, col, true);
+    updateSelectedCells();
+  }
+</script>
+
+</body>
+</html>
